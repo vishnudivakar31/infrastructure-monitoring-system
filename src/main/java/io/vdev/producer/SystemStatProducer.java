@@ -11,7 +11,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.util.Date;
-import java.util.List;
 
 @Slf4j
 @ApplicationScoped
