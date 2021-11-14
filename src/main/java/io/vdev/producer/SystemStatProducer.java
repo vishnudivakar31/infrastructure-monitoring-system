@@ -23,6 +23,7 @@ public class SystemStatProducer {
     private static final String CPU_USAGE_STATS = "CPU_USAGE_STATS";
     private static final String NETWORK_INTERFACE_ADDRESS = "NETWORK_INTERFACE_ADDRESS";
     private static final String NETWORK_SPEED_TEST = "NETWORK_SPEED_TEST";
+    private static final String DISK_USAGE = "DISK_USAGE";
 
     @Inject
     private SystemStatsUtil systemStatsUtil;
@@ -74,6 +75,27 @@ public class SystemStatProducer {
                     else log.error("getNetworkSpeed emitted failed. {}", failure.getMessage());
                     log.info("getNetworkSpeed stats emitted at {}", System.currentTimeMillis());
                 });
+    }
+
+    @Scheduled(every = "10m")
+    public void getDiskUsages() throws IOException {
+        log.info("getDiskUsages at {}", System.currentTimeMillis());
+        systemStatEmitter.send(getDiskUsageStat())
+                .whenComplete((success, failure) -> {
+                    if (failure == null) log.info("getDiskUsages emitted successfully");
+                    else log.error("getDiskUsages emitted failed. {}", failure.getMessage());
+                    log.info("getDiskUsages stats emitted at {}", System.currentTimeMillis());
+                });
+    }
+
+    private Stat getDiskUsageStat() throws IOException {
+        List<String> diskUsages = systemStatsUtil.getDiskUsage();
+        return Stat.builder()
+                .statName(DISK_USAGE)
+                .statUnit("")
+                .measure(diskUsages)
+                .timestamp(new Date())
+                .build();
     }
 
     private Stat getNetworkSpeedReport() throws IOException {

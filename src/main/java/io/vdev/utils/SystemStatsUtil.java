@@ -20,11 +20,10 @@ import java.util.List;
 @Slf4j
 @Singleton
 public class SystemStatsUtil {
-    private static final String DOWNLOAD_SPEED = "DOWNLOAD_SPEED";
-    private static final String UPLOAD_SPEED = "UPLOAD_SPEED";
     private String[] SPEED_TEST_CMD = {"/bin/sh", "-c", "speedtest-cli"};
     private String[] FIND_ALL_PROCESS_CMD = {"/bin/sh", "-c", "top -l 1 | grep -E thread"};
     private String[] FIND_CPU_USAGES = {"/bin/sh", "-c", "top -l 1 | grep -E ^CPU"};
+    private String[] FIND_DISK_USAGES = {"/bin/sh", "-c", "df -h /"};
     private Runtime runtime = Runtime.getRuntime();
 
     public String findNumberOfProcess() throws IOException {
@@ -87,6 +86,17 @@ public class SystemStatsUtil {
                         .speed(line.split(":")[1].trim())
                         .build());
             }
+        }
+        return result;
+    }
+
+    public List<String> getDiskUsage() throws IOException {
+        List<String> result = new LinkedList<>();
+        String line = "";
+        Process process = runtime.exec(FIND_DISK_USAGES);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        while((line = bufferedReader.readLine()) != null) {
+            result.add(line);
         }
         return result;
     }
