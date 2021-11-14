@@ -2,6 +2,7 @@ package io.vdev.socket;
 
 import io.vdev.encoder.StatEncoder;
 import io.vdev.model.Stat;
+import io.vdev.utils.SystemStatsUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 
@@ -11,6 +12,10 @@ import javax.websocket.OnError;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+import java.net.UnknownHostException;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,12 +24,21 @@ import java.util.concurrent.ConcurrentHashMap;
 @ApplicationScoped
 public class WebSocketHandler {
 
+    private static final String HOSTNAME = "HOSTNAME";
     private Map<String, Session> sessionMap = new ConcurrentHashMap<>();
+    private List<Stat> historyStats = new LinkedList<>();
 
     @OnOpen
-    public void onOpen(Session session) {
+    public void onOpen(Session session) throws UnknownHostException {
         log.info("a new user joined the session. {}", session.getId());
         sessionMap.put(session.getId(), session);
+        session.getAsyncRemote().sendObject(Stat.builder()
+                .timestamp(new Date())
+                .statName(HOSTNAME)
+                .statUnit("")
+                .measure(SystemStatsUtil.getHostName())
+                .build());
+        historyStats.stream().forEach(stat -> session.getAsyncRemote().sendObject(stat));
     }
 
     @OnClose
@@ -42,6 +56,8 @@ public class WebSocketHandler {
     @Incoming("system-stats")
     public void getSystemStats(Stat stat) {
         log.info("system-stat: {}", stat);
+        historyStats.removeIf(historyStat -> historyStat.getStatName().equals(stat.getStatName()));
+        historyStats.add(stat);
         broadcastSystemStat(stat);
     }
 
