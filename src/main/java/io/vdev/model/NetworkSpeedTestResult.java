@@ -1,14 +1,12 @@
 package io.vdev.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@Getter
 public class NetworkSpeedTestResult {
     private NetworkMode networkMode;
     private String speed;

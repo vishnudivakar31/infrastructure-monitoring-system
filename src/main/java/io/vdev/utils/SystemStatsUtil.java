@@ -20,6 +20,7 @@ import java.util.List;
 @Slf4j
 @Singleton
 public class SystemStatsUtil {
+    private static final String[] BATTERY_STATUS = {"/bin/sh", "-c", "pmset -g batt"};
     private String[] SPEED_TEST_CMD = {"/bin/sh", "-c", "speedtest-cli"};
     private String[] FIND_ALL_PROCESS_CMD = {"/bin/sh", "-c", "top -l 1 | grep -E thread"};
     private String[] FIND_CPU_USAGES = {"/bin/sh", "-c", "top -l 1 | grep -E ^CPU"};
@@ -94,6 +95,17 @@ public class SystemStatsUtil {
         List<String> result = new LinkedList<>();
         String line = "";
         Process process = runtime.exec(FIND_DISK_USAGES);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        while((line = bufferedReader.readLine()) != null) {
+            result.add(line);
+        }
+        return result;
+    }
+
+    public List<String> getBatteryStatus() throws IOException {
+        List<String> result = new LinkedList<>();
+        String line = "";
+        Process process = runtime.exec(BATTERY_STATUS);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
         while((line = bufferedReader.readLine()) != null) {
             result.add(line);

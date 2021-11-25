@@ -19,11 +19,12 @@ import java.util.List;
 @ApplicationScoped
 public class SystemStatProducer {
 
-    private static final String NUMBER_OF_PROCESS = "NUMBER_OF_PROCESS";
-    private static final String CPU_USAGE_STATS = "CPU_USAGE_STATS";
-    private static final String NETWORK_INTERFACE_ADDRESS = "NETWORK_INTERFACE_ADDRESS";
-    private static final String NETWORK_SPEED_TEST = "NETWORK_SPEED_TEST";
-    private static final String DISK_USAGE = "DISK_USAGE";
+    public static final String NUMBER_OF_PROCESS = "NUMBER_OF_PROCESS";
+    public static final String CPU_USAGE_STATS = "CPU_USAGE_STATS";
+    public static final String NETWORK_INTERFACE_ADDRESS = "NETWORK_INTERFACE_ADDRESS";
+    public static final String NETWORK_SPEED_TEST = "NETWORK_SPEED_TEST";
+    public static final String DISK_USAGE = "DISK_USAGE";
+    public static final String BATTERY_USAGE_STAT = "BATTERY_USAGE_STAT";
 
     @Inject
     private SystemStatsUtil systemStatsUtil;
@@ -55,7 +56,7 @@ public class SystemStatProducer {
                 });
     }
 
-    @Scheduled(every = "60s")
+    @Scheduled(every = "60m")
     public void getCurrentNetworkInterfaceAddresses() throws SocketException {
         log.info("getCurrentNetworkInterfaceAddresses starting..");
         systemStatEmitter.send(getNetworkInterfaceAddresses())
@@ -66,7 +67,7 @@ public class SystemStatProducer {
                 });
     }
 
-    @Scheduled(every = "10m")
+    @Scheduled(every = "5m")
     public void getNetworkSpeed() throws IOException {
         log.info("getNetworkSpeed started..");
         systemStatEmitter.send(getNetworkSpeedReport())
@@ -85,6 +86,17 @@ public class SystemStatProducer {
                     if (failure == null) log.info("getDiskUsages emitted successfully");
                     else log.error("getDiskUsages emitted failed. {}", failure.getMessage());
                     log.info("getDiskUsages stats emitted at {}", System.currentTimeMillis());
+                });
+    }
+
+    @Scheduled(every = "60s")
+    public void getBatteryStatus() throws IOException {
+        log.info("getBatteryStatus at {}", System.currentTimeMillis());
+        systemStatEmitter.send(checkBatteryStatus())
+                .whenComplete((success, failure) -> {
+                    if (failure == null) log.info("getBatteryStatus emitted successfully");
+                    else log.error("getBatteryStatus emitted failed. {}", failure.getMessage());
+                    log.info("getBatteryStatus stats emitted at {}", System.currentTimeMillis());
                 });
     }
 
@@ -135,6 +147,16 @@ public class SystemStatProducer {
                 .statName(CPU_USAGE_STATS)
                 .statUnit("")
                 .measure(cpuStats)
+                .build();
+    }
+
+    private Stat checkBatteryStatus() throws IOException {
+        List<String> batteryStatus = systemStatsUtil.getBatteryStatus();
+        return Stat.builder()
+                .timestamp(new Date())
+                .statName(BATTERY_USAGE_STAT)
+                .statUnit("")
+                .measure(batteryStatus)
                 .build();
     }
 }
