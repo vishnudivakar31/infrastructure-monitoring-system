@@ -15,6 +15,6 @@
 </p>
 
 <h2>Dashboard</h2>
-![dashboard_image](https://github.com/vishnudivakar31/infrastructure-monitoring-system/blob/main/screenshots/dashboard.png)
+<img src="https://github.com/vishnudivakar31/infrastructure-monitoring-system/blob/main/screenshots/dashboard.png" />
 
 <p>Available network interfaces are redacted for security reasons</p>
